@@ -31,6 +31,34 @@ signal_dictionary = { 1:'2', 2:'10', 3:'20', 4:'30', 5:'40', 6:'50', 7:'60', 8:'
 lab_signal = signal_dictionary[signal_tag]+" MeV"
 tag=signal_dictionary[signal_tag]+"MeV"
 
+##### make plot
+def makePlot(X1,X2, tag, Nb, **kwargs):
+    plt.clf()
+    plt.grid()
+    
+    xtitle=tag
+    title = tag
+    for key, value in kwargs.items():
+        if key == "xtitle":
+            xtitle = value
+        elif key=="title":
+            title = value
+        
+
+    themin = min( [min(X1), min(X2)])
+    themax = max( [max(X1), max(X2)])
+    bins = np.linspace(themin, themax, Nb)
+
+    plt.hist(X1, bins=bins, density=True, label=['background'])
+    plt.hist(X2, bins=bins, density=True, label=['signal'], histtype=u'step')
+
+    plt.xlabel(xtitle)
+    plt.title(title)
+    plt.ylabel("# Entries (Norm)")
+    plt.legend(loc='upper right')
+    plt.savefig(tag+".png")
+
+
 dataset1 = fulldata[  (fulldata[:,0] == 0)   ] # [0:5000,:]
 dataset2 = fulldata[  (fulldata[:,0] == signal_tag)   ]
 dataset = np.concatenate( (dataset1, dataset2), axis=0  )
@@ -65,6 +93,34 @@ X_test = X_[N_train:N,:]
 y_test = y_[N_train:N]
 w_test = w_[N_train:N]
 
+dataset_norm_bkg = dataset_norm[ dataset_norm[:,0]==0]
+dataset_norm_sig = dataset_norm[ dataset_norm[:,0]==1]
+
+x_bkg = dataset_norm_bkg[:,2:6]
+x_sig = dataset_norm_sig[:,2:6]
+
+trainDataAndLabels = np.insert(X_train,0,y_train, axis=1)
+
+trainData_bkg = trainDataAndLabels[ trainDataAndLabels[:,0]==0]
+trainData_sig = trainDataAndLabels[ trainDataAndLabels[:,0]==1]
+
+x_train_bkg = trainData_bkg[:,1:5]
+x_train_sig = trainData_sig[:,1:5]
+
+testDataAndLabels = np.insert(X_test,0,y_test, axis=1)
+
+testData_bkg = testDataAndLabels[ testDataAndLabels[:,0]==0]
+testData_sig = testDataAndLabels[ testDataAndLabels[:,0]==1]
+
+x_test_bkg = testData_bkg[:,1:5]
+x_test_sig = testData_sig[:,1:5]
+
+'''
+x_bkg = dataset1[:,2:6]
+x_sig = dataset2[:,2:6]
+'''
+#x_bkg_test = X_test[ (X_test[:,0]==0) ]
+#x_sig_test = X_test[ (X_test[:,0]==signal_tag)]
 
 if doWeightedFit:
     # define the keras model
@@ -73,7 +129,7 @@ if doWeightedFit:
     model.add(Dense(8, activation='relu'))
     model.add(Dense(1, activation='sigmoid'))
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
-    history = model.fit(X_train, y_train, epochs=150, batch_size=10, sample_weight= np.ascontiguousarray(w_train),
+    history = model.fit(X_train, y_train, epochs=300, batch_size=10, sample_weight= np.ascontiguousarray(w_train),
                         validation_split=0.5)
     print(history.history.keys())
     plt.clf()
@@ -105,7 +161,35 @@ rounded_predictions = np.argmax(predictions, axis=-1)
 
 for i in rounded_predictions:
     print(i)
-    
+
+
+
+
+#_, accuracy = model.evaluate(X, y)
+#print('Accuracy: %.2f' % (accuracy*100))
+#print(' Number of entries: ', len(X))
+
+## prediction
+res_sig = model.predict(x_sig)
+res_bkg = model.predict(x_bkg)
+
+#print(res_sig)
+makePlot(res_bkg.flatten(),res_sig.flatten(), "nn_pred", 20, xtitle="NN output", title="Neural Network Output For All Samples")
+
+
+## prediction
+res_sig = model.predict(x_train_sig)
+res_bkg = model.predict(x_train_bkg)
+
+makePlot(res_bkg.flatten(),res_sig.flatten(), "nn_pred_train", 20, xtitle="NN output", title="Neural Network Output For Train Samples")
+
+## prediction
+res_sig = model.predict(x_test_sig)
+res_bkg = model.predict(x_test_bkg)
+
+makePlot(res_bkg.flatten(),res_sig.flatten(), "nn_pred_test", 20, xtitle="NN output", title="Neural Network Output For Test Samples")
+
+
 
 cm = confusion_matrix(y_true = y_test, y_pred = rounded_predictions)
 
@@ -141,5 +225,7 @@ def plot_confusion_matrix (cm, classes,
 
 cm_plot_labels = ['Background', 'Signal']
 plot_confusion_matrix(cm=cm, classes=cm_plot_labels, title='Confusion Matrix')
+
+
 
     
