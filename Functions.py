@@ -66,7 +66,7 @@ def MakePlot(X1,X2, tag, Nb, **kwargs):
 
     plt.xlabel(xtitle)
     plt.title(title)
-    plt.ylabel("# Entries (Norm)")
+    plt.ylabel("Normalised Entries")
     plt.legend(loc='upper right')
     plt.savefig(tag+".png")
     
@@ -95,7 +95,7 @@ def MakeLogPlot(X1,X2, tag, Nb, **kwargs):
     plt.xlabel(xtitle)
     plt.title(title)
     plt.yscale('log')
-    plt.ylabel("# Entries (Norm)")
+    plt.ylabel("Normalised Entries")
     plt.legend(loc='upper right')
     plt.savefig(tag+".png")    
         
@@ -141,6 +141,32 @@ def CalculateHistogramLimits(x_bkg, w_bkg, x_sig, w_sig, bins):
     limit = GetLimit(bkg_values_all_norm, sig_values_all_norm)
     return limit
 
+def getROC(bkg_values, sig_values, bins=None):
+    
+    bkg_all = bkg_values.sum()
+    sig_all = bkg_values.sum()
+
+    bkg_rej = []
+    sig_eff = []
+    sum_sig = 0
+    sum_bkg = 0
+    for j in range(len(bkg_values)):
+        i =  len(bkg_values) -1 -j
+        sum_sig += sig_values[i]
+        sum_bkg += bkg_values[i]
+
+        i_bkg = 1-sum_bkg/bkg_all 
+        i_sig = sum_sig/sig_all
+        bkg_rej.append( i_bkg )
+        sig_eff.append( i_sig )
+
+        #if i_bkg < 0.99 and i_bkg > 0.01:
+        #    if i_sig < 0.99 and i_sig > 0.01:
+        #        print('{:4.3f} {:4.3f}'.format(i_bkg, i_sig))
+        
+
+    return bkg_rej, sig_eff
+
 def plot_confusion_matrix (cm, classes, confusionName,
                            normalize=False,
                            title='Confusion Matrix',
@@ -171,3 +197,6 @@ def plot_confusion_matrix (cm, classes, confusionName,
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
     plt.savefig(confusionName+".png")
+#Include weights to confusion matrix or explain why you haven't used them.
+#Not too important to include weights but do roc curves and limits first.
+
