@@ -1,8 +1,9 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Mar 23 11:49:30 2021
+Created on Thu Apr  8 12:15:18 2021
 
-@author: thoma
+@author: tom
 """
 
 import numpy as np
@@ -197,6 +198,57 @@ def plot_confusion_matrix (cm, classes, confusionName,
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
     plt.savefig(confusionName+".png")
+
+def PlotLimit(xval, yval, label0, yval1, label1, savetag):
+    plt.clf()
+
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
+    plt.plot(xval, yval, '--bo',label=label0)
+    plt.plot(xval, yval1, '-k.',label=label1)
+    
+    plt.xlabel('Dark photon mass [MeV]')
+    plt.ylabel(r'Br$(\mu\to e (A\to ee) \nu\nu) \times 10^{-10}$')
+    plt.title('Dark photon upper limit comparisons')
+    ax.text(0.6,0.75,'Mu3e',transform=ax.transAxes)
+    ax.text(0.6,0.7,'95% CL upper limits',transform=ax.transAxes)
+    plt.legend()
+    plt.gca().xaxis.grid(True)
+    plt.gca().yaxis.grid(True)
+
+    plt.savefig("limit.png")
+    plt.yscale('log')
+    plt.ylim((0.01,15.))
+    ax.grid(which='major', color='#CCCCCC', linestyle='--')
+    ax.grid(which='minor', color='#CCCCCC', linestyle=':')
+
+    plt.savefig(savetag+"_limit_log.png")
+
+def Plot3Limit(xval, yval, label0, yval1, label1, yval2, label2, savetag):
+    plt.clf()
+
+    fig = plt.figure()
+    ax = fig.add_subplot(1,1,1)
+    plt.plot(xval, yval, '--bo', label= label0)
+    plt.plot(xval, yval1, '-k.', label= label1)
+    plt.plot(xval, yval2, '--r', label = label2)
+    
+    plt.xlabel('Dark photon mass [MeV]')
+    plt.ylabel(r'Br$(\mu\to e (A\to ee) \nu\nu) \times 10^{-10}$')
+    plt.title('Dark photon upper limit comparisons')
+    ax.text(0.6,0.60,'Mu3e',transform=ax.transAxes)
+    ax.text(0.6,0.55,'95% CL upper limits',transform=ax.transAxes)
+    plt.legend()
+    plt.gca().xaxis.grid(True)
+    plt.gca().yaxis.grid(True)
+
+    plt.savefig("limit.png")
+    plt.yscale('log')
+    plt.ylim((0.01,15.))
+    ax.grid(which='major', color='#CCCCCC', linestyle='--')
+    ax.grid(which='minor', color='#CCCCCC', linestyle=':')
+
+    plt.savefig(savetag+"_limit_log.png")
+
 #Include weights to confusion matrix or explain why you haven't used them.
 #Not too important to include weights but do roc curves and limits first.
-
