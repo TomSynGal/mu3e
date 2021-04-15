@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Apr  8 12:15:18 2021
+Created on Wed Apr 14 09:04:05 2021
 
-@author: tom
+@author: thoma
 """
+
 
 import numpy as np
 import scipy.stats
@@ -126,6 +126,31 @@ def GetLimit(hbkg, hsig, confidenceLevel=0.95, doIt=True):
     
     return lim
 
+def GetLimit90(hbkg, hsig, confidenceLevel=0.90, doIt=True):
+    N = len(hbkg)
+    ns, nb = 0., 0.
+    res = 0.
+    for j in range(N):
+        i = N - j - 1
+        ns += hsig[i]
+        nb += hbkg[i]
+        if nb > 3:
+            sign = ns/sqrt(nb)
+            res += sign*sign
+            #print('bin ',i, ns, nb, sign, res)
+            ns, nb = 0., 0.
+        else:
+            continue
+            
+    s = scipy.stats.norm.ppf(1-(1-confidenceLevel)*0.5)
+    lim = s/sqrt(res)
+    #if isinf(lim) and doIt:
+    #    return getLimit(savgol_filter(hbkg,5,2), savgol_filter(hsig,5,2),
+    #                    confidenceLevel, False)
+        
+    
+    return lim
+
         
 def CalculateHistogramLimits(x_bkg, w_bkg, x_sig, w_sig, bins):
     N_bkg_all = w_bkg.sum()
@@ -140,6 +165,21 @@ def CalculateHistogramLimits(x_bkg, w_bkg, x_sig, w_sig, bins):
     sig_values_all_norm = sig_val * N_sig_all/ N_norm_sig
 
     limit = GetLimit(bkg_values_all_norm, sig_values_all_norm)
+    return limit
+
+def CalculateHistogramLimits90(x_bkg, w_bkg, x_sig, w_sig, bins):
+    N_bkg_all = w_bkg.sum()
+    N_sig_all = w_sig.sum()
+    bkg_val, bin_edges = np.histogram(x_bkg, bins=bins, weights=w_bkg, density=True)
+    sig_val, bin_edges = np.histogram(x_sig, bins=bins, weights=w_sig, density=True)
+
+    ## calculate the limit here
+    N_norm_bkg = bkg_val.sum()
+    N_norm_sig = sig_val.sum()
+    bkg_values_all_norm = bkg_val * N_bkg_all/ N_norm_bkg
+    sig_values_all_norm = sig_val * N_sig_all/ N_norm_sig
+
+    limit = GetLimit90(bkg_values_all_norm, sig_values_all_norm)
     return limit
 
 def getROC(bkg_values, sig_values, bins=None):
@@ -199,7 +239,7 @@ def plot_confusion_matrix (cm, classes, confusionName,
     plt.xlabel('Predicted label')
     plt.savefig(confusionName+".png")
 
-def PlotLimit(xval, yval, label0, yval1, label1, savetag):
+def PlotLimit(xval, yval, label0, yval1, label1, savetag, confidencetag):
     plt.clf()
 
     fig = plt.figure()
@@ -211,20 +251,20 @@ def PlotLimit(xval, yval, label0, yval1, label1, savetag):
     plt.ylabel(r'Br$(\mu\to e (A\to ee) \nu\nu) \times 10^{-10}$')
     plt.title('Dark photon upper limit comparisons')
     ax.text(0.6,0.75,'Mu3e',transform=ax.transAxes)
-    ax.text(0.6,0.7,'95% CL upper limits',transform=ax.transAxes)
+    ax.text(0.6,0.7,confidencetag+'% CL upper limits',transform=ax.transAxes)
     plt.legend()
     plt.gca().xaxis.grid(True)
     plt.gca().yaxis.grid(True)
 
     plt.savefig("limit.png")
     plt.yscale('log')
-    plt.ylim((0.01,15.))
+    plt.ylim((0.01,50.))
     ax.grid(which='major', color='#CCCCCC', linestyle='--')
     ax.grid(which='minor', color='#CCCCCC', linestyle=':')
 
     plt.savefig(savetag+"_limit_log.png")
 
-def Plot3Limit(xval, yval, label0, yval1, label1, yval2, label2, savetag):
+def Plot3Limit(xval, yval, label0, yval1, label1, yval2, label2, savetag, confidencetag):
     plt.clf()
 
     fig = plt.figure()
@@ -236,15 +276,15 @@ def Plot3Limit(xval, yval, label0, yval1, label1, yval2, label2, savetag):
     plt.xlabel('Dark photon mass [MeV]')
     plt.ylabel(r'Br$(\mu\to e (A\to ee) \nu\nu) \times 10^{-10}$')
     plt.title('Dark photon upper limit comparisons')
-    ax.text(0.6,0.60,'Mu3e',transform=ax.transAxes)
-    ax.text(0.6,0.55,'95% CL upper limits',transform=ax.transAxes)
+    ax.text(0.6,0.45,'Mu3e',transform=ax.transAxes)
+    ax.text(0.6,0.40,confidencetag+'% CL upper limits',transform=ax.transAxes)
     plt.legend()
     plt.gca().xaxis.grid(True)
     plt.gca().yaxis.grid(True)
 
     plt.savefig("limit.png")
     plt.yscale('log')
-    plt.ylim((0.01,15.))
+    plt.ylim((0.01,50.))
     ax.grid(which='major', color='#CCCCCC', linestyle='--')
     ax.grid(which='minor', color='#CCCCCC', linestyle=':')
 
