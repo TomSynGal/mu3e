@@ -43,6 +43,38 @@ def SignalBackgroundPlot(x_bkg, w_bkg, x_sig, w_sig, bins, xlabel, ylabel, lab_s
     if doLog:
         plt.yscale('log')
         plt.savefig(pname+"_log.png")
+
+def SignalBackgroundPlot2(x_bkg, w_bkg, x_sig, w_sig, bins, xlabel, ylabel, lab_signal, title, pname, doLog=False):
+    plt.clf()
+    dens = True
+    h_main,_,_=plt.hist(x_bkg, bins=bins,weights=w_bkg,label=['Background'],density=dens, color='aqua')
+    plt.hist(x_sig, bins=bins,weights=w_sig,label=['Signal '+lab_signal], histtype=u'step', density=True, color='k')
+
+    # plot error bars for the background
+    bincenters = 0.5*(bins[1:]+bins[:-1])
+    binwidths  = (bins[1:]-bins[:-1])
+    Nbins = len(h_main)
+
+    #h_int =sum( [ h_main[i]*binwidths[i] for i in range(Nbins)  ]  )
+    #print('histo integral',h_int)
+    #Ntot = np.sum(w_bkg)/h_int
+    print(np.sum(w_bkg),(bins[-1]-bins[0]))
+    Ntot = 1
+    if dens:
+        Ntot =  np.sum(w_bkg) *(bins[-1]-bins[0])/len(h_main)
+    h_main_err = np.sqrt( np.histogram(x_bkg,bins=bins, weights=w_bkg*w_bkg)[0]  ) / Ntot
+    plt.errorbar(bincenters, h_main,barsabove=True, ls='', yerr=h_main_err, marker='+',color='deepskyblue')
+    
+    plt.xlabel(xlabel)
+    plt.title(title)
+    plt.ylabel(ylabel)
+    plt.xlim([0.0,0.6])
+    plt.legend() 
+    plt.savefig(pname+".png")
+    plt.show()
+    if doLog:
+        plt.yscale('log')
+        plt.savefig(pname+"_log.png")
   
 ##### make plot
 def MakePlot(X1,X2, tag, Nb, **kwargs):
@@ -249,8 +281,8 @@ def PlotLimit(xval, yval, label0, yval1, label1, savetag, confidencetag):
     
     plt.xlabel('Dark photon mass [MeV]')
     plt.ylabel(r'Br$(\mu\to e (A\to ee) \nu\nu) \times 10^{-10}$')
-    plt.title('Dark photon upper limit comparisons')
-    ax.text(0.6,0.75,'Mu3e',transform=ax.transAxes)
+    plt.title('Dark Photon Upper Limit Comparisons')
+    ax.text(0.6,0.75,'Mu3e, Work in Progress',transform=ax.transAxes)
     ax.text(0.6,0.7,confidencetag+'% CL upper limits',transform=ax.transAxes)
     plt.legend()
     plt.gca().xaxis.grid(True)
@@ -275,8 +307,8 @@ def Plot3Limit(xval, yval, label0, yval1, label1, yval2, label2, savetag, confid
     
     plt.xlabel('Dark photon mass [MeV]')
     plt.ylabel(r'Br$(\mu\to e (A\to ee) \nu\nu) \times 10^{-10}$')
-    plt.title('Dark photon upper limit comparisons')
-    ax.text(0.6,0.45,'Mu3e',transform=ax.transAxes)
+    plt.title('Dark Photon Upper Limit Comparisons')
+    ax.text(0.6,0.45,'Mu3e, Work in Progress',transform=ax.transAxes)
     ax.text(0.6,0.40,confidencetag+'% CL upper limits',transform=ax.transAxes)
     plt.legend()
     plt.gca().xaxis.grid(True)
